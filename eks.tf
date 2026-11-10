@@ -13,7 +13,10 @@ resource "aws_iam_role" "cluster" {
   assume_role_policy = data.aws_iam_policy_document.eks_assume.json
 }
 
-# + aws_iam_role_policy_attachment: AmazonEKSClusterPolicy
+resource "aws_iam_role_policy_attachment" "cluster" {
+  role       = aws_iam_role.cluster.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
 
 resource "aws_eks_cluster" "this" {
   name     = var.name
@@ -31,8 +34,30 @@ resource "aws_eks_cluster" "this" {
   depends_on = [aws_iam_role_policy_attachment.cluster]
 }
 
-# + node role (trust ec2.amazonaws.com) with AmazonEKSWorkerNodePolicy,
-#   AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly
+data "aws_iam_policy_document" "node_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "node" {
+  name               = "${var.name}-eks-node"
+  assume_role_policy = data.aws_iam_policy_document.node_assume.json
+}
+
+resource "aws_iam_role_policy_attachment" "node" {
+  for_each = toset([
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+  ])
+  role       = aws_iam_role.node.name
+  policy_arn = each.value
+}
 
 resource "aws_eks_node_group" "default" {
   cluster_name    = aws_eks_cluster.this.name
@@ -47,5 +72,8 @@ resource "aws_eks_node_group" "default" {
     max_size     = 3
   }
 
-  # depends_on: the node policy attachments and the route table associations
+  depends_on = [
+    aws_iam_role_policy_attachment.node,
+    aws_route_table_association.public,
+  ]
 }

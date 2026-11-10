@@ -6,4 +6,10 @@ output "ecr_repository_url" {
   value = aws_ecr_repository.hello.repository_url
 }
 
-# + infra_role_arn, and the update-kubeconfig command
+output "infra_role_arn" {
+  value = aws_iam_role.gha_infra.arn
+}
+
+output "update_kubeconfig_command" {
+  value = "aws eks update-kubeconfig --name ${aws_eks_cluster.this.name} --region ${var.region}"
+}
