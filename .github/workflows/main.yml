@@ -1,9 +1,9 @@
 on:
-  pull_request:
+  push:
     branches: [main]
 
 jobs:
-  plan:
+  apply:
     runs-on: ubuntu-latest
     permissions:
       contents: read

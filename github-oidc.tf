@@ -74,6 +74,8 @@ data "aws_iam_policy_document" "infra_trust" {
       values = [
         "repo:Daniel-343/csk-w10-infra:pull_request",
         "repo:Daniel-343/csk-w10-infra:ref:refs/heads/main",
+        "repo:Daniel-343@125360894/csk-w10-infra@1452908585:pull_request",
+        "repo:Daniel-343@125360894/csk-w10-infra@1452908585:ref:refs/heads/main",
       ]
     }
   }

@@ -14,9 +14,9 @@ resource "kubernetes_namespace_v1" "hello" {
   }
 }
 
-# Step 4, once the cluster exists: uncomment. kubernetes_manifest needs a live
-# cluster at plan time, so it can't be planned in the same run that creates it.
-# resource "kubernetes_manifest" "deployment" {
-#   manifest   = yamldecode(file("${path.module}/k8s/deployment.yaml"))
-#   depends_on = [kubernetes_namespace_v1.hello]
-# }
+# Step 4. kubernetes_manifest needs a live cluster at plan time, so it can't be
+# planned in the same run that creates the cluster.
+resource "kubernetes_manifest" "deployment" {
+  manifest   = yamldecode(file("${path.module}/k8s/deployment.yaml"))
+  depends_on = [kubernetes_namespace_v1.hello]
+}
